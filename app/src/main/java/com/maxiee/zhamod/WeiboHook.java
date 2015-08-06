@@ -1,9 +1,13 @@
 package com.maxiee.zhamod;
 
 import android.content.res.XModuleResources;
+import android.graphics.Color;
 import android.os.Bundle;
+import android.support.v4.app.FragmentActivity;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
 import de.robv.android.xposed.IXposedHookInitPackageResources;
@@ -20,7 +24,7 @@ import de.robv.android.xposed.callbacks.XC_LoadPackage;
  */
 public class WeiboHook implements IXposedHookLoadPackage, IXposedHookInitPackageResources, IXposedHookZygoteInit{
     private static String MODULE_PATH = null;
-    private static final String PACKAGE_NAME = "com.sina.weibo";
+    private static final String PACKAGE_NAME = "com.sina.weibolite";
     private XModuleResources mModRes;
 
     @Override
@@ -35,42 +39,63 @@ public class WeiboHook implements IXposedHookLoadPackage, IXposedHookInitPackage
         }
         XposedBridge.log("主人,发现渣浪客户端!");
 
-        final Class<?> tabView = XposedHelpers.findClass("com.sina.weibo.view.TabView", loadPackageParam.classLoader);
+        final Class<?> homeListActivity = XposedHelpers.findClass("com.sina.weibo.HomeListActivity", loadPackageParam.classLoader);
 
         XposedHelpers.findAndHookMethod(
-                tabView,
-                "setText",
-                String.class,
-                new XC_MethodHook() {
-                    @Override
-                    protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                    }
-
-                    @Override
-                    protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                        String text = (String) XposedHelpers.getObjectField(param.thisObject, "f");
-                        XposedBridge.log(text);
-                        XposedHelpers.setObjectField(param.thisObject, "f", "渣");
-                        ((View) param.thisObject).invalidate();
-                    }
-                });
-
-        final Class<?> mainTabActivity = XposedHelpers.findClass("com.sina.weibo.MainTabActivity", loadPackageParam.classLoader);
-
-        XposedHelpers.findAndHookMethod(
-                mainTabActivity,
+                homeListActivity,
                 "onCreate",
                 Bundle.class,
                 new XC_MethodHook() {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                        RelativeLayout relativeLayout = (RelativeLayout) XposedHelpers.getObjectField(param.thisObject, "U");
-                        ImageView composeImage = (ImageView) relativeLayout.getChildAt(0);
-                        composeImage.clearColorFilter();
-                        composeImage.setImageDrawable(mModRes.getDrawable(R.drawable.bei));
+                        LinearLayout titleBarLeft = (LinearLayout) XposedHelpers.getObjectField(param.thisObject, "h");
+                        RelativeLayout titleBar = (RelativeLayout) titleBarLeft.getParent();
+                        titleBar.setBackgroundResource(0);
+                        titleBar.setBackgroundColor(Color.parseColor("#3F51B5"));
                     }
                 }
         );
+
+//        final Class<?> tabView = XposedHelpers.findClass("com.sina.weibo.view.TabView", loadPackageParam.classLoader);
+//
+//        XposedHelpers.findAndHookMethod(
+//                tabView,
+//                "setText",
+//                String.class,
+//                new XC_MethodHook() {
+//                    @Override
+//                    protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+//                    }
+//
+//                    @Override
+//                    protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+//                        String text = (String) XposedHelpers.getObjectField(param.thisObject, "f");
+//                        XposedBridge.log(text);
+//                        XposedHelpers.setObjectField(param.thisObject, "f", "渣");
+//                        ((View) param.thisObject).invalidate();
+//                    }
+//                });
+
+//        final Class<?> mainTabActivity = XposedHelpers.findClass("com.sina.weibo.MainTabActivity", loadPackageParam.classLoader);
+//
+//        XposedHelpers.findAndHookMethod(
+//                mainTabActivity,
+//                "q",
+//                new XC_MethodHook() {
+//                    @Override
+//                    protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+//                        RelativeLayout relativeLayout = (RelativeLayout) XposedHelpers.getObjectField(param.thisObject, "U");
+//                        relativeLayout.setVisibility(View.VISIBLE);
+//                        ImageView oldComposeImage = (ImageView) relativeLayout.getChildAt(0);
+//                        oldComposeImage.setVisibility(View.GONE);
+//                        ImageView composeImage = new ImageView(relativeLayout.getContext());
+//                        composeImage.setImageDrawable(mModRes.getDrawable(R.drawable.bei));
+//                        composeImage.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+//                        composeImage.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+//                        relativeLayout.addView(composeImage);
+//                    }
+//                }
+//        );
     }
 
     @Override
