@@ -14,6 +14,7 @@ import de.robv.android.xposed.IXposedHookInitPackageResources;
 import de.robv.android.xposed.IXposedHookLoadPackage;
 import de.robv.android.xposed.IXposedHookZygoteInit;
 import de.robv.android.xposed.XC_MethodHook;
+import de.robv.android.xposed.XC_MethodReplacement;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import de.robv.android.xposed.callbacks.XC_InitPackageResources;
@@ -52,6 +53,19 @@ public class WeiboHook implements IXposedHookLoadPackage, IXposedHookInitPackage
                         RelativeLayout titleBar = (RelativeLayout) titleBarLeft.getParent();
                         titleBar.setBackgroundResource(0);
                         titleBar.setBackgroundColor(Color.parseColor("#3F51B5"));
+                    }
+                }
+        );
+
+        final Class<?> statusModel = XposedHelpers.findClass("com.sina.weibo.models.Status", loadPackageParam.classLoader);
+
+        XposedHelpers.findAndHookMethod(
+                statusModel,
+                "getText",
+                new XC_MethodReplacement() {
+                    @Override
+                    protected Object replaceHookedMethod(MethodHookParam methodHookParam) throws Throwable {
+                        return "天好热啊。。";
                     }
                 }
         );
