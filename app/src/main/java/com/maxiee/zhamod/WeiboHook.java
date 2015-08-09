@@ -1,5 +1,6 @@
 package com.maxiee.zhamod;
 
+import android.content.Context;
 import android.content.res.XModuleResources;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -25,7 +26,7 @@ import de.robv.android.xposed.callbacks.XC_LoadPackage;
  */
 public class WeiboHook implements IXposedHookLoadPackage, IXposedHookInitPackageResources, IXposedHookZygoteInit{
     private static String MODULE_PATH = null;
-    private static final String PACKAGE_NAME = "com.sina.weibolite";
+    private static final String PACKAGE_NAME = "com.sina.weibo";
     private XModuleResources mModRes;
 
     @Override
@@ -40,32 +41,29 @@ public class WeiboHook implements IXposedHookLoadPackage, IXposedHookInitPackage
         }
         XposedBridge.log("主人,发现渣浪客户端!");
 
-        final Class<?> homeListActivity = XposedHelpers.findClass("com.sina.weibo.HomeListActivity", loadPackageParam.classLoader);
+        final Class<?> baseLayout = XposedHelpers.findClass("com.sina.weibo.view.BaseLayout", loadPackageParam.classLoader);
 
         XposedHelpers.findAndHookMethod(
-                homeListActivity,
-                "onCreate",
-                Bundle.class,
+                baseLayout,
+                "a",
                 new XC_MethodHook() {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                        LinearLayout titleBarLeft = (LinearLayout) XposedHelpers.getObjectField(param.thisObject, "h");
-                        RelativeLayout titleBar = (RelativeLayout) titleBarLeft.getParent();
-                        titleBar.setBackgroundResource(0);
-                        titleBar.setBackgroundColor(Color.parseColor("#3F51B5"));
+                        changeTitleBarBackground(param);
                     }
                 }
         );
 
-        final Class<?> statusModel = XposedHelpers.findClass("com.sina.weibo.models.Status", loadPackageParam.classLoader);
-
         XposedHelpers.findAndHookMethod(
-                statusModel,
-                "getText",
-                new XC_MethodReplacement() {
+                baseLayout,
+                "a",
+                Context.class,
+                View.class,
+                "boolean",
+                new XC_MethodHook() {
                     @Override
-                    protected Object replaceHookedMethod(MethodHookParam methodHookParam) throws Throwable {
-                        return "天好热啊。。";
+                    protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                        changeTitleBarBackground(param);
                     }
                 }
         );
@@ -110,6 +108,12 @@ public class WeiboHook implements IXposedHookLoadPackage, IXposedHookInitPackage
 //                    }
 //                }
 //        );
+    }
+
+    private void changeTitleBarBackground(XC_MethodHook.MethodHookParam param) {
+        View titleBar = (View) XposedHelpers.getObjectField(param.thisObject, "g");
+        titleBar.setBackgroundResource(0);
+        titleBar.setBackgroundColor(Color.parseColor("#3F51B5"));
     }
 
     @Override
