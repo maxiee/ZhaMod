@@ -1,4 +1,4 @@
-package com.maxiee.zhamod;
+package com.maxiee.zhamod.activity.fragment;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.preference.Preference;
 import android.preference.PreferenceFragment;
 
+import com.maxiee.zhamod.R;
 import com.maxiee.zhamod.activity.ThemeActivity;
 
 /**
