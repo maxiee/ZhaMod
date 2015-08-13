@@ -2,20 +2,13 @@ package com.maxiee.zhamod;
 
 import android.content.Context;
 import android.content.res.XModuleResources;
-import android.graphics.Color;
-import android.os.Bundle;
-import android.support.v4.app.FragmentActivity;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
 
 import de.robv.android.xposed.IXposedHookInitPackageResources;
 import de.robv.android.xposed.IXposedHookLoadPackage;
 import de.robv.android.xposed.IXposedHookZygoteInit;
 import de.robv.android.xposed.XC_MethodHook;
-import de.robv.android.xposed.XC_MethodReplacement;
+import de.robv.android.xposed.XSharedPreferences;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import de.robv.android.xposed.callbacks.XC_InitPackageResources;
@@ -113,7 +106,12 @@ public class WeiboHook implements IXposedHookLoadPackage, IXposedHookInitPackage
     private void changeTitleBarBackground(XC_MethodHook.MethodHookParam param) {
         View titleBar = (View) XposedHelpers.getObjectField(param.thisObject, "g");
         titleBar.setBackgroundResource(0);
-        titleBar.setBackgroundColor(Color.parseColor("#3F51B5"));
+        XSharedPreferences sp = new XSharedPreferences(
+                WeiboHook.class.getPackage().getName(),
+                Constants.SP_FILE);
+        sp.reload();
+        int backgroundSelect = sp.getInt(Constants.SP_BACKGROUND, 0);
+        titleBar.setBackgroundColor(mModRes.getColor(Constants.COLORS[backgroundSelect]));
     }
 
     @Override
