@@ -8,6 +8,10 @@ The module is developed by Android Studio. You can import into it.
 
 ##ChangeLog
 
+###v0.0.2 20150819
+
+1. remove banner ad from timeline (work not perfectly).
+
 ###v0.0.1 20150813
 
 1. Change the titlebar background.
