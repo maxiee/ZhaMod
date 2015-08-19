@@ -1,8 +1,11 @@
 package com.maxiee.zhamod;
 
+import android.app.TabActivity;
 import android.content.Context;
 import android.content.res.XModuleResources;
 import android.view.View;
+import android.widget.ListView;
+import android.widget.TabHost;
 
 import de.robv.android.xposed.IXposedHookInitPackageResources;
 import de.robv.android.xposed.IXposedHookLoadPackage;
@@ -21,6 +24,7 @@ public class WeiboHook implements IXposedHookLoadPackage, IXposedHookInitPackage
     private static String MODULE_PATH = null;
     private static final String PACKAGE_NAME = "com.sina.weibo";
     private XModuleResources mModRes;
+    private Class<?> mHomeListActivity;
 
     @Override
     public void initZygote(StartupParam startupParam) throws Throwable {
@@ -28,7 +32,7 @@ public class WeiboHook implements IXposedHookLoadPackage, IXposedHookInitPackage
     }
 
     @Override
-    public void handleLoadPackage(XC_LoadPackage.LoadPackageParam loadPackageParam) throws Throwable {
+    public void handleLoadPackage(final XC_LoadPackage.LoadPackageParam loadPackageParam) throws Throwable {
         if (!loadPackageParam.packageName.equals(PACKAGE_NAME)) {
             return;
         }
@@ -61,46 +65,38 @@ public class WeiboHook implements IXposedHookLoadPackage, IXposedHookInitPackage
                 }
         );
 
-//        final Class<?> tabView = XposedHelpers.findClass("com.sina.weibo.view.TabView", loadPackageParam.classLoader);
-//
-//        XposedHelpers.findAndHookMethod(
-//                tabView,
-//                "setText",
-//                String.class,
-//                new XC_MethodHook() {
-//                    @Override
-//                    protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-//                    }
-//
-//                    @Override
-//                    protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-//                        String text = (String) XposedHelpers.getObjectField(param.thisObject, "f");
-//                        XposedBridge.log(text);
-//                        XposedHelpers.setObjectField(param.thisObject, "f", "渣");
-//                        ((View) param.thisObject).invalidate();
-//                    }
-//                });
-
-//        final Class<?> mainTabActivity = XposedHelpers.findClass("com.sina.weibo.MainTabActivity", loadPackageParam.classLoader);
-//
-//        XposedHelpers.findAndHookMethod(
-//                mainTabActivity,
-//                "q",
-//                new XC_MethodHook() {
-//                    @Override
-//                    protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-//                        RelativeLayout relativeLayout = (RelativeLayout) XposedHelpers.getObjectField(param.thisObject, "U");
-//                        relativeLayout.setVisibility(View.VISIBLE);
-//                        ImageView oldComposeImage = (ImageView) relativeLayout.getChildAt(0);
-//                        oldComposeImage.setVisibility(View.GONE);
-//                        ImageView composeImage = new ImageView(relativeLayout.getContext());
-//                        composeImage.setImageDrawable(mModRes.getDrawable(R.drawable.bei));
-//                        composeImage.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-//                        composeImage.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
-//                        relativeLayout.addView(composeImage);
-//                    }
-//                }
-//        );
+        XposedHelpers.findAndHookMethod(
+                "com.sina.weibo.MainTabActivity",
+                loadPackageParam.classLoader,
+                "onResume",
+                new XC_MethodHook() {
+                    @Override
+                    protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                        XposedBridge.log("抓到MainTabActivity的OnResume啦!");
+                        TabActivity tabActivity = (TabActivity) param.thisObject;
+                        TabHost tabHost = (TabHost) XposedHelpers.getObjectField(param.thisObject, "n");
+                        tabHost.setCurrentTabByTag("mblog_tab");
+                        // hook in hook 666
+//                        mHomeListActivity = XposedHelpers.findClass("com.sina.weibo.HomeListActivity", loadPackageParam.classLoader);
+                        mHomeListActivity = tabActivity.getCurrentActivity().getClass();
+                        XposedHelpers.findAndHookMethod(
+                                mHomeListActivity,
+                                "onResume",
+                                new XC_MethodHook() {
+                                    @Override
+                                    protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                                        XposedBridge.log("钩住HomeListActivity的onResume啦!");
+                                        // remove ad
+                                        View adView = (View) XposedHelpers.getObjectField(param.thisObject, "F");
+                                        ListView list = (ListView) XposedHelpers.getObjectField(param.thisObject, "D");
+                                        adView.setVisibility(View.GONE);
+                                        list.removeHeaderView(adView);
+                                    }
+                                }
+                        );
+                    }
+                }
+        );
     }
 
     private void changeTitleBarBackground(XC_MethodHook.MethodHookParam param) {
