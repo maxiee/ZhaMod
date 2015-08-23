@@ -4,7 +4,7 @@ import android.app.TabActivity;
 import android.content.Context;
 import android.content.res.XModuleResources;
 import android.view.View;
-import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.TabHost;
 
 import de.robv.android.xposed.IXposedHookInitPackageResources;
@@ -77,8 +77,8 @@ public class WeiboHook implements IXposedHookLoadPackage, IXposedHookInitPackage
                         TabHost tabHost = (TabHost) XposedHelpers.getObjectField(param.thisObject, "n");
                         tabHost.setCurrentTabByTag("mblog_tab");
                         // hook in hook 666
-//                        mHomeListActivity = XposedHelpers.findClass("com.sina.weibo.HomeListActivity", loadPackageParam.classLoader);
-                        mHomeListActivity = tabActivity.getCurrentActivity().getClass();
+                        mHomeListActivity = XposedHelpers.findClass("com.sina.weibo.HomeListActivity", loadPackageParam.classLoader);
+//                        mHomeListActivity = tabActivity.getCurrentActivity().getClass();
                         XposedHelpers.findAndHookMethod(
                                 mHomeListActivity,
                                 "onResume",
@@ -87,10 +87,8 @@ public class WeiboHook implements IXposedHookLoadPackage, IXposedHookInitPackage
                                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                                         XposedBridge.log("钩住HomeListActivity的onResume啦!");
                                         // remove ad
-                                        View adView = (View) XposedHelpers.getObjectField(param.thisObject, "F");
-                                        ListView list = (ListView) XposedHelpers.getObjectField(param.thisObject, "D");
-                                        adView.setVisibility(View.GONE);
-                                        list.removeHeaderView(adView);
+                                        RelativeLayout WeiboBannerAd = (RelativeLayout) XposedHelpers.getObjectField(param.thisObject, "E");
+                                        WeiboBannerAd.setVisibility(View.GONE);
                                     }
                                 }
                         );
