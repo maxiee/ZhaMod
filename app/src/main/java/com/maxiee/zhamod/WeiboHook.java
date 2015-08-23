@@ -7,6 +7,8 @@ import android.view.View;
 import android.widget.RelativeLayout;
 import android.widget.TabHost;
 
+import com.maxiee.zhamod.hook.service.WeiboServiceHook;
+
 import de.robv.android.xposed.IXposedHookInitPackageResources;
 import de.robv.android.xposed.IXposedHookLoadPackage;
 import de.robv.android.xposed.IXposedHookZygoteInit;
@@ -95,6 +97,8 @@ public class WeiboHook implements IXposedHookLoadPackage, IXposedHookInitPackage
                     }
                 }
         );
+
+        WeiboServiceHook.init(loadPackageParam);
     }
 
     private void changeTitleBarBackground(XC_MethodHook.MethodHookParam param) {
